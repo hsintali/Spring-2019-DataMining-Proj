@@ -1,25 +1,19 @@
 import numpy as np
-import math
 
 class kNearestNeighbor:
-    def euclidean(self, trainSet, testSet):
-        dist = 0
-        for i in range(0, len(trainSet)):
-            dist += (trainSet[i] - testSet[i])**2
-        return math.sqrt(dist)
-
-    def nearestNeighbor(self, trainX, trainY, testX):
-        distance = []
-        for i in range(0, len(trainX)):
-            dist = self.euclidean(trainX[i], testX)
-            distance.append([dist, trainY[i]])
-        distance = sorted(distance)
-        return distance[0][1]
+    def nearestNeighbor(self, trainSetX, trainSetY, testX, k):
+        distance = (((testX - trainSetX)**2).sum(axis=1))**0.5
+        distance = dict(zip(distance, trainSetY))
+        candidate = [[key, distance[key]] for key in sorted(distance.keys())[:k]]
+        result = np.zeros(2)
+        for element in candidate:
+            result[int(element[1])] += 1
+        return np.argmax(result)
 
     def fit(self, param, trainX, trainY, validateX, validateY):
         correct = 0
         for i in range(0, len(validateY)):
-            p = self.nearestNeighbor(trainX, trainY, validateX[i])
+            p = self.nearestNeighbor(trainX, trainY, validateX[i], param)
             if p == validateY[i]:
                 correct += 1
         return float(correct) / float(len(validateY)) * 100

@@ -26,7 +26,8 @@ class CrossValidation:
         return classifier(param, trainX, trainY, validateX, validateY)
 
     def exec(self, classifier, param):
-        accuracys = []
+        trainAcc = []
+        testAcc = []
         for n in range(0, self.folds):
             trainX = []
             trainY = []
@@ -40,5 +41,6 @@ class CrossValidation:
             trainY = np.reshape(np.array(trainY), (np.shape(trainY)[0]*np.shape(trainY)[1], 1))
             validateX = np.array(validateX)
             validateY = np.array(validateY)
-            accuracys.append(self.fit(classifier, param, trainX, trainY, validateX, validateY))
-        return np.array(accuracys).mean()
+            trainAcc.append(self.fit(classifier, param, trainX, trainY, trainX, trainY))
+            testAcc.append(self.fit(classifier, param, trainX, trainY, validateX, validateY))
+        return np.array(trainAcc).mean(), np.array(testAcc).mean()

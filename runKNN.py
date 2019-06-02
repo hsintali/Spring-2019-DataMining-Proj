@@ -1,38 +1,47 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.io as sp
-import CV
-import kNN
+
+class kNearestNeighbor:
+    def nearestNeighbor(self, trainSetX, trainSetY, testX, k):
+        distance = (((testX - trainSetX)**2).sum(axis=1))**0.5
+        distance = dict(zip(distance, trainSetY))
+        candidate = [[key, distance[key]] for key in sorted(distance.keys())[:k]]
+        result = np.zeros(2)
+        for element in candidate:
+            result[int(element[1])] += 1
+        return np.argmax(result)
+
+    def fit(self, param, trainX, trainY, testX, testY):
+        correct = 0
+        for i in range(0, len(testY)):
+            p = self.nearestNeighbor(trainX, trainY, testX[i], param)
+            if p == testY[i]:
+                correct += 1
+        return float(correct) / float(len(testY)) * 100
 
 trainX = sp.loadmat("data/trainNorm.mat")["datanorm"][:,0:20]
 trainY = sp.loadmat('data/trainY.mat')["result"]
 testX = sp.loadmat("data/testNorm.mat")["datanorm"][:,0:20]
 testY = sp.loadmat('data/testY.mat')["result"]
 
-crossValidation = CV.CrossValidation(trainX, trainY, 10)
-kNN = kNN.kNearestNeighbor()
-trainingAccuracy = [0]
-validationAccuracy = [0]
+kNN = kNearestNeighbor()
+testingAccuracy = [0]
 maxK = 1
-for k in range(1, 14, 2):
-    trainAcc, validationAcc = crossValidation.exec(kNN.fit, k)
-    if validationAcc > max(validationAccuracy):
+for k in range(1, 30, 2):
+    testAcc = kNN.fit(k, trainX, trainY, testX, testY)
+    if testAcc > max(testingAccuracy):
         maxK = k
-    trainingAccuracy.append(trainAcc)
-    validationAccuracy.append(validationAcc)
-    print("Cross Validation Accuracy for k = {:2d}".format(k) + ": {:.2f}".format(validationAcc) + " %")
+    testingAccuracy.append(testAcc)
+    print("Testing Accuracy for k = {:2d}".format(k) + ": {:.2f}".format(testAcc) + " %")
 
-plt.xlim(1, 13)
+plt.xlim(1, 29)
 plt.ylim(70, 101)
-plt.xticks(range(1, 14, 2), fontsize=16)
+plt.xticks(range(1, 30, 2), fontsize=16)
 plt.yticks(range(70, 101, 5), fontsize=16)
-plt.title("Cross Validation Accuracy for Different k", fontsize=20, fontweight='bold')
+plt.title("Testing Accuracy for Different k", fontsize=20, fontweight='bold')
 plt.xlabel("k", fontsize=18, fontweight='bold')
-plt.ylabel("Cross Validation Accuracy (%)", fontsize=18, fontweight='bold')
-plt.plot(range(1, 14, 2), trainingAccuracy[1:], color='r', label="Training Accuracy")
-plt.plot(range(1, 14, 2), validationAccuracy[1:], color='b', label="Validation Accuracy")
-plt.legend(loc='best', fontsize=16)
+plt.ylabel("Accuracy (%)", fontsize=18, fontweight='bold')
+plt.plot(range(1, 30, 2), testingAccuracy[1:])
 plt.show()
-
-print("KNN with k = " + str(maxK) + " will have the highest accuracy: {:.2f}".format(max(validationAccuracy)) + " %")
-print("Testing Accuracy (k = " + str(maxK) + "): {:.2f}".format(kNN.fit(k, trainX, trainY, testX, testY)) + " %")
+print("KNN with k = " + str(maxK) + " has the highest testing accuracy: {:.2f}".format(max(testingAccuracy)) + " %")

@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io as sp
 
 class LogisticRegression:
     def sigmoid(self, z):
@@ -61,3 +63,46 @@ class LogisticRegression:
         w = self.trainLR(trainX, trainY, param)
         accuracy = self.accuracyLR(validateX, validateY, w)
         return accuracy * 100
+
+trainX = sp.loadmat("data/trainNorm.mat")["datanorm"][:,0:20]
+trainY = sp.loadmat('data/trainY.mat')["result"]
+testX = sp.loadmat("data/testNorm.mat")["datanorm"][:,0:20]
+testY = sp.loadmat('data/testY.mat')["result"]
+
+trainX = np.array(trainX)
+trainY = np.reshape(trainY, (len(trainY), 1))
+testX = np.array(testX)
+testY = np.reshape(testY, (len(testY), 1))
+
+trainY = np.where(trainY == 0, -1, 1)
+testY = np.where(testY == 0, -1, 1)
+
+LR = LogisticRegression()
+x = []
+testingAccuracy = [0]
+bestLambda = 0
+lambda_ = 0.1
+upper = 100
+while lambda_ <= upper:
+    x.append(lambda_)
+    testAcc = LR.fit(lambda_, trainX, trainY, testX, testY)
+    if testAcc > max(testingAccuracy):
+        bestLambda = lambda_
+    testingAccuracy.append(testAcc)
+    print("Testing Accuracy for lambda = {:6.2f}".format(lambda_) + ": {:.2f}".format(testAcc) + " %")
+    if (lambda_ == upper):
+        break
+    lambda_ = lambda_ * 1.5
+    if(lambda_ > upper):
+        lambda_ = upper
+
+plt.xlim([0.1, upper])
+plt.ylim(70, 101)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.xlabel("$ln\lambda$", fontsize=18, fontweight='bold')
+plt.ylabel("Accuracy (%)", fontsize=18, fontweight='bold')
+plt.title("Testing Accuracy for Different $\lambda$", fontsize=20, fontweight='bold')
+plt.semilogx(x, testingAccuracy[1:])
+plt.show()
+print("Logistic Regression with lambda = {:.2f}".format(bestLambda) + " has the highest testing accuracy: {:.2f}".format(max(testingAccuracy)) + " %")

@@ -1,5 +1,9 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt 
+import pandas as pd 
+import seaborn as sn 
 import numpy as np
 
 class NeuralNetwork:
@@ -93,6 +97,16 @@ class NeuralNetwork:
 			if self.resultY[i] > self.threshold :
 				self.predictY[i] = 1
 
+	def plotCM (self) :
+		cm = confusion_matrix(self.testY,self.predictY)
+		df_cm = pd.DataFrame(cm, ["No" , "Yes"], ["No" , "Yes"])
+		sn.set(font_scale=1.2)#for label size
+		sn.heatmap(df_cm, fmt="d", annot=True, annot_kws={"size": 14})# font size
+		plt.xlabel("Predicted Value", fontsize=14, fontweight='bold')
+		plt.ylabel("Truth Value", fontsize=14, fontweight='bold')
+		plt.title("Confusion Matrix of Neural Networks Model", fontsize=14, fontweight='bold')
+		plt.show()
+
 # all features
 fea_all = np.arange(20)
 # features selected by PCA
@@ -103,15 +117,17 @@ fea_FS = [4, 1, 5, 9, 6, 8, 11, 15, 10, 18, 13, 0, 7, 19]
 threshold = 0.5
 
 # trainNameX, trainNameY, threshold
-NN = NeuralNetwork("trainX.csv", "trainY.csv", threshold)
-NN.runNN(fea_all, "all features and no oversampling")
-NN.runNN(fea_PCA, "PCA and no oversampling")
-NN.runNN(fea_FS, "forward selection and no oversampling")
+# NN = NeuralNetwork("trainX.csv", "trainY.csv", threshold)
+# NN.runNN(fea_all, "all features and no oversampling")
+# NN.runNN(fea_PCA, "PCA and no oversampling")
+# NN.runNN(fea_FS, "forward selection and no oversampling")
 
 NN_O = NeuralNetwork("trainX_oversampling.csv", "trainY_oversampling.csv", threshold)
 NN_O.runNN(fea_all, "all features and oversampling")
-NN_O.runNN(fea_PCA, "PCA and oversampling")
-NN_O.runNN(fea_FS, "forward selection and oversampling")
+NN_O.plotCM()
+# NN_O.runNN(fea_PCA, "PCA and oversampling")
+# NN_O.runNN(fea_FS, "forward selection and oversampling")
+
 
 
 

@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.io as sp
+from sklearn.metrics import classification_report, confusion_matrix
+import pandas as pd
+import seaborn as sn
 
 class LogisticRegression:
     def sigmoid(self, z):
@@ -61,13 +63,22 @@ class LogisticRegression:
 
     def fit(self, param, trainX, trainY, validateX, validateY):
         w = self.trainLR(trainX, trainY, param)
-        accuracy = self.accuracyLR(validateX, validateY, w)
-        return accuracy * 100
+        Z = validateX @ w
+        accuracy = self.accuracyLR(validateX, validateY, w) * 100
+        pred = []
+        for z in Z:
+            if z >= 0:
+                pred.append(1)
+            else:
+                pred.append(-1)
+        return accuracy, pred
 
-trainX = sp.loadmat("data/trainNorm.mat")["datanorm"][:,0:20]
-trainY = sp.loadmat('data/trainY.mat')["result"]
-testX = sp.loadmat("data/testNorm.mat")["datanorm"][:,0:20]
-testY = sp.loadmat('data/testY.mat')["result"]
+
+trainX = np.genfromtxt("data/trainX.csv", delimiter=',')
+trainY = np.genfromtxt('data/trainY.csv', delimiter=',')
+
+testX = np.genfromtxt("data/testX.csv", delimiter=',')
+testY = np.genfromtxt('data/testY.csv', delimiter=',')
 
 trainX = np.array(trainX)
 trainY = np.reshape(trainY, (len(trainY), 1))
@@ -77,6 +88,8 @@ testY = np.reshape(testY, (len(testY), 1))
 trainY = np.where(trainY == 0, -1, 1)
 testY = np.where(testY == 0, -1, 1)
 
+
+"""
 LR = LogisticRegression()
 x = []
 testingAccuracy = [0]
@@ -85,7 +98,7 @@ lambda_ = 0.1
 upper = 100
 while lambda_ <= upper:
     x.append(lambda_)
-    testAcc = LR.fit(lambda_, trainX, trainY, testX, testY)
+    testAcc, pred = LR.fit(lambda_, trainX, trainY, testX, testY)
     if testAcc > max(testingAccuracy):
         bestLambda = lambda_
     testingAccuracy.append(testAcc)
@@ -106,3 +119,18 @@ plt.title("Testing Accuracy for Different $\lambda$", fontsize=20, fontweight='b
 plt.semilogx(x, testingAccuracy[1:])
 plt.show()
 print("Logistic Regression with lambda = {:.2f}".format(bestLambda) + " has the highest testing accuracy: {:.2f}".format(max(testingAccuracy)) + " %")
+"""
+
+
+LR = LogisticRegression()
+acc, pred = LR.fit(0.76, trainX, trainY, testX, testY)
+print("accuracy: {:.2f}".format(acc) + " %")
+print(classification_report(testY,pred))
+cm = confusion_matrix(testY,pred)
+df_cm = pd.DataFrame(cm, ["No" , "Yes"], ["No" , "Yes"])
+sn.set(font_scale=1.2)#for label size
+sn.heatmap(df_cm, fmt="d", annot=True, annot_kws={"size": 14})# font size
+plt.xlabel("Predicted Value", fontsize=14, fontweight='bold')
+plt.ylabel("Truth Value", fontsize=14, fontweight='bold')
+plt.title("Confusion Matrix of Logistic Regression Model", fontsize=14, fontweight='bold')
+plt.show()

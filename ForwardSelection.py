@@ -1,8 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.metrics import classification_report, confusion_matrix
-import pandas as pd
-import seaborn as sn
+from sklearn.metrics import recall_score
 
 class LogisticRegression:
     def sigmoid(self, z):
@@ -88,49 +85,36 @@ testY = np.reshape(testY, (len(testY), 1))
 trainY = np.where(trainY == 0, -1, 1)
 testY = np.where(testY == 0, -1, 1)
 
+def forwardSelection(trainX, trainY, testX, testY):
+    selectedFeatures = []
+    finalFeatures = []
+    finalRecall = 0
+    for i in range(1, len(trainX[0]) + 1):
+        bestRecall = 0
+        pendingFeature = 0
+        for j in range(1, len(trainX[0]) + 1):
+            if j not in selectedFeatures:
+                selectedFeatures.append(j)
+                fea = [item - 1 for item in selectedFeatures]
+                LR = LogisticRegression()
+                acc, pred = LR.fit(0.76, trainX[:, fea], trainY, testX[:, fea], testY)
+                recall = recall_score(testY, pred) * 100
+                print("        Using feature(s) " + str(selectedFeatures) + " recall is " + str(recall) + "%")
+                selectedFeatures.remove(j)
+                if recall > bestRecall:
+                    bestRecall = recall
+                    pendingFeature = j
+        if pendingFeature == 0:
+            break
+        elif pendingFeature != 0:
+            selectedFeatures.append(pendingFeature)
+        if bestRecall > finalRecall:
+            finalRecall = bestRecall
+            finalFeatures = selectedFeatures[:]
+            print("\nFeature set " + str(selectedFeatures) + " was best, recall is " + str(bestRecall) + "%\n")
+        else:
+            print("\n(Warning, Recall has decreased! Continuing search in case of local maxima)")
+            print("Feature set " + str(selectedFeatures) + " was best, recall is " + str(bestRecall) + "%\n")
+    print("\nFinished search!! The best feature subset is " + str(finalFeatures) + ", which has an recall of " + str(finalRecall) + "%\n")
 
-
-LR = LogisticRegression()
-x = []
-testingAccuracy = [0]
-bestLambda = 0
-lambda_ = 0.1
-upper = 100
-while lambda_ <= upper:
-    x.append(lambda_)
-    testAcc, pred = LR.fit(lambda_, trainX, trainY, testX, testY)
-    if testAcc > max(testingAccuracy):
-        bestLambda = lambda_
-    testingAccuracy.append(testAcc)
-    print("Testing Accuracy for lambda = {:6.2f}".format(lambda_) + ": {:.2f}".format(testAcc) + " %")
-    if (lambda_ == upper):
-        break
-    lambda_ = lambda_ * 1.5
-    if(lambda_ > upper):
-        lambda_ = upper
-
-plt.xlim([0.1, upper])
-plt.ylim(70, 101)
-plt.xticks(fontsize=16)
-plt.yticks(fontsize=16)
-plt.xlabel("$ln\lambda$", fontsize=18, fontweight='bold')
-plt.ylabel("Accuracy (%)", fontsize=18, fontweight='bold')
-plt.title("Testing Accuracy for Different $\lambda$", fontsize=20, fontweight='bold')
-plt.semilogx(x, testingAccuracy[1:])
-plt.show()
-print("Logistic Regression with lambda = {:.2f}".format(bestLambda) + " has the highest testing accuracy: {:.2f}".format(max(testingAccuracy)) + " %")
-
-
-
-LR = LogisticRegression()
-acc, pred = LR.fit(0.76, trainX, trainY, testX, testY)
-print("accuracy: {:.2f}".format(acc) + " %")
-print(classification_report(testY,pred))
-cm = confusion_matrix(testY,pred)
-df_cm = pd.DataFrame(cm, ["No" , "Yes"], ["No" , "Yes"])
-sn.set(font_scale=1.2)#for label size
-sn.heatmap(df_cm, fmt="d", annot=True, annot_kws={"size": 14})# font size
-plt.xlabel("Predicted Value", fontsize=14, fontweight='bold')
-plt.ylabel("Truth Value", fontsize=14, fontweight='bold')
-plt.title("Confusion Matrix of Logistic Regression Model", fontsize=14, fontweight='bold')
-plt.show()
+forwardSelection(trainX, trainY, testX, testY)

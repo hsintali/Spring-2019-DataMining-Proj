@@ -26,14 +26,14 @@ class kNearestNeighbor:
         return accruacy, pred
 
 
-trainX = np.genfromtxt("data/trainX.csv", delimiter=',')
-trainY = np.genfromtxt('data/trainY.csv', delimiter=',')
+trainX = np.genfromtxt("data/toyTrainX.csv", delimiter=',')
+trainY = np.genfromtxt('data/toyTrainY.csv', delimiter=',')
 
-testX = np.genfromtxt("data/testX.csv", delimiter=',')
-testY = np.genfromtxt('data/testY.csv', delimiter=',')
+testX = np.genfromtxt("data/toyTestX.csv", delimiter=',')
+testY = np.genfromtxt('data/toyTestY.csv', delimiter=',')
 
 
-"""
+
 kNN = kNearestNeighbor()
 testingAccuracy = [0]
 maxK = 1
@@ -54,7 +54,7 @@ plt.ylabel("Accuracy (%)", fontsize=18, fontweight='bold')
 plt.plot(range(1, 30, 2), testingAccuracy[1:])
 plt.show()
 print("KNN with k = " + str(maxK) + " has the highest testing accuracy: {:.2f}".format(max(testingAccuracy)) + " %")
-"""
+
 
 
 
